@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <declare-styleable name="SwipeView">
+        <attr name="surname_name" format="string" />
+        <attr name="phone_number" format="string" />
+        <attr name="photo" format="reference" />
+    </declare-styleable>
+</resources>
+<!--    app:surname_name="Christos Jesus"-->
+<!--    app:phone_number="+79995771202"-->
+<!--    app:photo="Christos Jesus"-->
+
+<!--<attr name="surname_name" format="string" />-->
+<!--<attr name="phone_number" format="string" />-->
+<!--<attr name="photo" format="integer" />-->
