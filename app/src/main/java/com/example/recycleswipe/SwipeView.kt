@@ -1,7 +1,10 @@
 package com.example.recycleswipe
 
+import android.animation.IntEvaluator
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
+import android.graphics.drawable.Drawable
 import android.util.AttributeSet
 import android.util.Log
 import android.view.MotionEvent
@@ -54,6 +57,7 @@ class SwipeView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
         rightbrush.color = Color.WHITE
         val _matrix = Matrix()
         _matrix.postScale(.15F, .15f)
+//        var drawable = Drawable.createFromResourceStream(resources,photo)                         //Need get weigh and heigh
         val bitFac = BitmapFactory.decodeResource(resources, photo)
         configMap[Screen.Right] = ConfigSet(
         Bitmap.createBitmap(
@@ -122,7 +126,7 @@ class SwipeView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
                         BitmapFactory.decodeResource(resources, R.drawable.calls),
                         0,0,MEMBER_HEIGHT*7, MEMBER_HEIGHT*7,callMatrix, true
                 ),
-                SCREEN_HEIGHT,
+                -2*MEMBER_HEIGHT+30,
                 callbrush,
                 null
         )
@@ -138,7 +142,7 @@ class SwipeView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
                         BitmapFactory.decodeResource(resources, R.drawable.message),
                         0,0,MEMBER_HEIGHT*9, MEMBER_HEIGHT*9,messageMatrix, true
                 ),
-                SCREEN_HEIGHT,
+                -2*MEMBER_HEIGHT+MEMBER_HEIGHT+20,
                 messagebrush,
                 null
         )
@@ -149,7 +153,6 @@ class SwipeView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
     var lastX: Int? = null
 
 
-                                                                                                    //onMeasure - why need?
     override fun onTouchEvent(event: MotionEvent): Boolean {
         //If crash will be, may need custom event as Nullable
         val touch = round(event.x).toInt()
@@ -164,74 +167,56 @@ class SwipeView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
             MotionEvent.ACTION_MOVE -> {
 //                if touch
                 lastX?:return false
-                move(touch)                                                                         //Animate
+                delta = lastX!!-touch
+                invalidate()
             }
         }
         return true
     }
 
-    private fun move(touchX: Int) {
-        delta = lastX!!-touchX
-        invalidate()
-    }
 
     private fun rebase() {                                                                          //Animate
         Log.d("Coords", "x=$x, y=$y")
-        if(abs(delta) > SCREEN_WIGHT/4)
-            current = if(delta < 0) {
-                when(current){
+        if(abs(delta) > SCREEN_WIGHT/6) {
+            current = if (delta < 0) {
+                when (current) {
                     Screen.Left -> Screen.Left
                     Screen.Right -> Screen.Front
                     Screen.Front -> Screen.Left
-                    else -> {throw Exception("EXCEPT")}
+                    else -> {
+                        throw Exception("EXCEPT")
+                    }
                 }
-            }
-            else {
-                when(current){
+            } else {
+                when (current) {
                     Screen.Left -> Screen.Front
                     Screen.Right -> Screen.Right
                     Screen.Front -> Screen.Right
-                    else -> {throw Exception("EXCEPT")}
+                    else -> {
+                        throw Exception("EXCEPT")
+                    }
                 }
             }
+        }
         delta = 0
-//        TODO("Not yet implemented")
         Log.e("Current", "${current.name}, delta = $delta, lastX = $lastX")
-        if(current == Screen.Right)openContact()
         invalidate()
     }
 
-    fun openContact() {
-        Log.d(nameSurname, "method")
-//        val valAn = ValueAnimator()
-//        valAn.setObjectValues(Pair(MEMBER_HEIGHT, 0), Pair(SCREEN_WIGHT-970, -1000))
-//        valAn.setEvaluator(TypeEvaluator<Pair<Int, Float>>{fraction, start, end ->
-//            return@TypeEvaluator Pair(
-//                ((end.first-start.first)*fraction).roundToInt() + MEMBER_HEIGHT,
-//                (end.second-start.second)*fraction
-//            )
-//        })
-//        valAn.addUpdateListener { p ->
-//            Log.d("P","f:${(p.animatedValue as Pair<*, *>).first}" +
-//                    "\ns:${(p.animatedValue as Pair<*, *>).second}")
-//            MEMBER_HEIGHT = (p.animatedValue as Pair<Int, Float>).first
-//            PHOTO_TOP = (p.animatedValue as Pair<Int, Float>).second
-//            invalidate()
-//        }
-//        valAn.duration=1000
-//        valAn.start()
+    fun hide() {
+        if(current == Screen.Front) return
+        val valAn = ValueAnimator()
+        val current_delt = configMap[current]!!.wight * if(current == Screen.Right)1 else -1
+        valAn.setObjectValues(current_delt, 0)
+        valAn.setEvaluator(IntEvaluator())
+        valAn.addUpdateListener { p ->
+            delta = p.animatedValue as Int;
+            invalidate()
+        }
+        current = Screen.Front
+        valAn.duration=1000
+        valAn.start()
 
-        /*
-        canvas.drawBitmap(
-                            colorMap[Screen.Right]!!.bitmap!!,
-                            0f,
-                            0f, rightBrush)
-
-                            Bitmap.createBitmap(
-                BitmapFactory.decodeResource(resources, R.drawable.jesus), 0,
-                300, SCREEN_WIGHT, SCREEN_HEIGHT
-            ),
-         */
     }
     private fun drawNameAndNumber(canvas: Canvas){
         textBrush.textSize = 72F
@@ -295,16 +280,15 @@ class SwipeView(context: Context?, attrs: AttributeSet?) : View(context, attrs) 
                         configMap[Screen.Call]?.let {
                             canvas.drawBitmap(
                                     it.bitmap!!,
-                                    -2*MEMBER_HEIGHT+min(abs(delta), 2*MEMBER_HEIGHT)+30f, 30f, it.brush
+                                    it.wight.toFloat()+min(abs(delta), 2*MEMBER_HEIGHT), 30f, it.brush
                             )
                         }
                         configMap[Screen.Message]?.let {
                             canvas.drawBitmap(
                                     it.bitmap!!,
-                                    -2*MEMBER_HEIGHT+min(abs(delta), 2*MEMBER_HEIGHT)+MEMBER_HEIGHT+20f, 40f, it.brush
+                                    it.wight.toFloat()+min(abs(delta), 2*MEMBER_HEIGHT), 40f, it.brush
                             )
                         }
-                        //-2*MEMBER_HEIGHT+abs(delta)+
                     }
                 } else {// move to left
                     wallWight = min(abs(delta), MEMBER_HEIGHT)
