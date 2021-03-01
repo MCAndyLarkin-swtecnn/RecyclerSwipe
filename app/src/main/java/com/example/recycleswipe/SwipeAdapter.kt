@@ -7,7 +7,9 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 
 class SwipeAdapter(var values: List<ContactData>) :  RecyclerView.Adapter<SwipeAdapter.SwipeHolder>() {
-
+    object const{
+        val SCROLL_REACTION = 20
+    }
     class SwipeHolder(itemView: View?) : RecyclerView.ViewHolder(
         itemView ?: throw object : Exception("HolderError") {}
     ) {

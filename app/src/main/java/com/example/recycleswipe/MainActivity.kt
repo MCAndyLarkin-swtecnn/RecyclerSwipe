@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import kotlin.math.abs
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,11 +17,13 @@ class MainActivity : AppCompatActivity() {
 //        (resyContact.adapter as SwipeAdapter).notifyDataSetChanged()
         resyContact.setOnScrollChangeListener { v, scrollX, scrollY, oldScrollX, oldScrollY ->
             Log.e("Scroll", "Recy")
-            val first = (resyContact.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
-            val last = (resyContact.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
-            for (position in first..last){
-                (resyContact.layoutManager as LinearLayoutManager).findViewByPosition(position)?.let{
-                    (it as SwipeView).hide();
+            if(abs(scrollY - oldScrollY) > SwipeAdapter.const.SCROLL_REACTION){
+                val first = (resyContact.layoutManager as LinearLayoutManager).findFirstVisibleItemPosition()
+                val last = (resyContact.layoutManager as LinearLayoutManager).findLastVisibleItemPosition()
+                for (position in first..last){
+                    (resyContact.layoutManager as LinearLayoutManager).findViewByPosition(position)?.let{
+                        (it as SwipeView).hide();
+                    }
                 }
             }
         }
